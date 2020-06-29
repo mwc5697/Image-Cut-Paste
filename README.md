@@ -1,5 +1,5 @@
 # Image-Cut-Paste
-Use pillow to cut an image to several pieces &amp;  paste pieces to make original image
+Use Pillow to cut an image to several pieces &amp;  paste pieces to make original image
 
 ## Requirements
 
