@@ -16,4 +16,4 @@ Use Pillow to cut an image to several pieces &amp;  paste pieces to make origina
   - create folder name with prefix output filename
   - save cut images inside the folder
 
-For example, it will create 12 images when you write 'cut_image_py hana.jpeg 2 2 test' in folder name 'test' with prefix name + random number
+For example, it will create 4 images when you write 'cut_image_py hana.jpeg 2 2 test' in folder name 'test' with prefix name + random number
