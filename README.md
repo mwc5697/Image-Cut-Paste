@@ -36,7 +36,7 @@ For example, it will create 4 images when you write 'cut_image_py hana.jpeg 2 2 
 
 ## Problem to solve
 
-- cut_image.py can cut as many pieces as user wants but paste_image.py can only make a new image with 2x2 size
+- cut_image.py can cut as many pieces as user wants but paste_image.py can only make a new image with 2x2, 3x3 size
 - if image has one color edges, it might not make a new image that user wants
 
 example:
