@@ -22,16 +22,15 @@ def side(image):
 	isSide = True if h > w else False
 	return isSide
 
+### rotate first image depends on row and column number ###
+im = im.rotate(90, expand=True) if (r > c and not side(im)) or (r < c and side(im)) else im
+
 #### rotate other images to have same width & height as first image ###
 im_c = list(range(0, r*c-1))
 for i in range(1, r*c):
 	im_c[i-1] = Image.open(input_files[i])
 	if side(im) != side(im_c[i-1]):
 		im_c[i-1] = im_c[i-1].rotate(90, expand=True)
-
-#im_c[0].show()
-#im_c[1].show()
-#im_c[2].show()
 
 ### get list of pixel value on one edge ###
 def pixelInfo(image, length, isSide, start):
@@ -70,21 +69,15 @@ def nextImage(mainImage, others):
 				subSide = pixelInfo(others[i], lSide, side(others[i]), j)
 				try:
 					if dif > (eTECompare(lSide, mainSide, subSide[::-1])):
-						#print(eTECompare(length, mainSide, subSide[::-1]))
-						#print(i,j,k)
 						order = i
 						flip = True
 						mirror = False if j!=k else True
-						#print(k)
 						leftOrTop = True if k == 0 else False
 						dif = eTECompare(lSide, mainSide, subSide[::-1])
 
 					if dif > (eTECompare(lSide, mainSide, subSide)):
-						#print(eTECompare(length, mainSide, subSide))
-						#print(i,j,k)
 						order = i
 						flip = False
-						#print(k)
 						mirror = False if j!=k else True
 						leftOrTop = True if k == 0 else False
 						dif = eTECompare(lSide, mainSide, subSide)
@@ -95,62 +88,79 @@ def nextImage(mainImage, others):
 		flip = not flip
 		mirror = not mirror
 
-	return order, flip, mirror, leftOrTop
+	return order, flip, mirror, leftOrTop, dif
 
 ### merge two images ###
-def mergeImage(mainImage, subImage, leftOrTop):
+def mergeImage(mainImage, subImage, leftOrTop, more):
 	wm, hm = mainImage.size
 	ws, hs = subImage.size
 
-	#print(side(mainImage))
-	#print(leftOrTop)
-	if side(mainImage) and not leftOrTop: # right
+	sideYes = not side(mainImage) if more else side(mainImage)
+
+	if sideYes and not leftOrTop: # right
 		plate = Image.new('RGB', (wm+ws, hm))
 		plate.paste(mainImage, (0,0))
 		plate.paste(subImage, (wm,0))
 
-	if side(mainImage) and leftOrTop: # left
+	if sideYes and leftOrTop: # left
 		plate = Image.new('RGB', (wm+ws, hm))
-		plate.paste(mainImage, (wm,0))
+		plate.paste(mainImage, (ws,0))
 		plate.paste(subImage, (0,0))
 
-	if not side(mainImage) and leftOrTop: # top
+	if not sideYes and leftOrTop: # top
 		plate = Image.new('RGB', (wm, hm+hs))
-		plate.paste(mainImage, (0,hm))
+		plate.paste(mainImage, (0,hs))
 		plate.paste(subImage, (0,0))
-	  
-	if not side(mainImage) and not leftOrTop: # bottom
+
+	if not sideYes and not leftOrTop: # bottom
 		plate = Image.new('RGB', (wm, hm+hs))
 		plate.paste(mainImage, (0,0))
 		plate.paste(subImage, (0,hm))
 
 	return plate
 
-### get information of second image ###
-num, flip, mirror, leftOrTop = nextImage(im, im_c)
-#print(nextImage(im, im_c))
 
-### change second image ###
-im_c[num] = ImageOps.flip(im_c[num]) if flip else im_c[num]
-im_c[num] = ImageOps.mirror(im_c[num]) if mirror else im_c[num]
+### check if merging two or three images and make merged image ###
+def longImage(mainImage, others, rOrC, pOrF):
+    
+	info2 = nextImage(mainImage, others)
+	others[info2[0]] = ImageOps.flip(others[info2[0]]) if info2[1] else others[info2[0]]
+	others[info2[0]] = ImageOps.mirror(others[info2[0]]) if info2[2] else others[info2[0]]
+	       
+	im2 = others[info2[0]]
+	others.remove(others[info2[0]])
+	merge = mergeImage(mainImage, im2, info2[3], False)
 
-### create first merge image ###
-a = mergeImage(im, im_c[num], leftOrTop)
+	if rOrC > 2:
+		a = nextImage(mainImage, others)
+		b = nextImage(im2, others)
+		info3 = a if a[4] < b[4] else b
+		others[info3[0]] = ImageOps.flip(others[info3[0]]) if info3[1] else others[info3[0]]
+		others[info3[0]] = ImageOps.mirror(others[info3[0]]) if info3[2] else others[info3[0]]
+		       
+		im3 = others[info3[0]]
+		others.remove(others[info3[0]])
+		merge = mergeImage(merge, im3, info3[3], pOrF)
 
-### create second merge image ###
-im_c.remove(im_c[num])
-num2, flip2, mirror2, leftOrTop2 = nextImage(im_c[0], im_c[1:])
-#print(flip2, mirror2, leftOrTop2)
-im_c[num2+1] = ImageOps.flip(im_c[num2+1]) if flip2 else im_c[num2+1]
-im_c[num2+1] = ImageOps.mirror(im_c[num2+1]) if mirror2 else im_c[num2+1]
+	return merge, others
 
-b = mergeImage(im_c[0], im_c[num2+1], leftOrTop2)
+### find whether row or column is bigger ###
+shortS = c if side(im) else r
+longS = r if side(im) else c
 
-### merge two created image ###
-numA, flipA, mirrorA, leftOrTopA = nextImage(a, [b])
-#print(flipA, mirrorA, leftOrTopA)
-b = ImageOps.flip(b) if flipA else b
-b = ImageOps.mirror(b) if mirrorA else b
+### merge images to make long image ###
+merged, im_rest = longImage(im, im_c, longS, True)
 
-### save 2x2 image file with given name ###
-mergeImage(a, b, leftOrTopA).save('%s.jpg' % (name))
+### merge other images to make second long image ###
+mergedImages = []
+merged2, im_rest = longImage(im_rest[0], im_rest[1:], longS, True)
+mergedImages.append(merged2)
+
+### merge other images to make third long image ###
+if shortS > 2:
+	merged3, im_rest = longImage(im_rest[0], im_rest[1:], longS, True)
+	mergedImages.append(merged3)
+
+### merge all merged images ###
+full = longImage(merged, mergedImages, shortS, False)[0]
+full.save('%s.jpg' % (name))
