@@ -43,3 +43,20 @@ example:
 
 ![](res/mindsLabInfo.jpeg)
 ![](res/newmindslab.jpg)
+
+## Updates
+
+- 3x3 size is also available
+example:
+
+Original Image
+
+![](res/images.jpeg)
+
+Make it into 9 pieces
+
+![](res/nine_part.png)
+
+regroup into one image
+
+![](res/nine.jpg)
