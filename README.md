@@ -46,7 +46,8 @@ example:
 
 ## Updates
 
-- 3x3 size is also available
+- 3x3 size is also available (June/30/2020)
+
 example:
 
 Original Image
