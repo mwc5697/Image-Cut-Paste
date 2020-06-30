@@ -50,14 +50,14 @@ example:
 
 example:
 
-Original Image
+* Original Image
 
 ![](res/images.jpeg)
 
-Make it into 9 pieces
+* Make it into 9 pieces
 
 ![](res/nine_part.png)
 
-regroup into one image
+* regroup into one image
 
 ![](res/nine.jpg)
